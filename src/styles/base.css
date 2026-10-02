@@ -1,0 +1,58 @@
+/* Site-wide base — mirrors the page-level styles of the v4 design. */
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: #161826;
+  color: #e9e9ed;
+  font-family: Inter, system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: #b5abfc; text-underline-offset: 3px; }
+a:hover { color: #d2cefd; }
+button, input { font-family: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid #9184d9; outline-offset: 2px; }
+::selection { background: #423a6a; }
+
+.page { background: var(--color-bg); color: var(--color-text); overflow-x: hidden; }
+
+/* Shared layout tokens */
+:root {
+  --gutter: clamp(20px, 5.5vw, 80px);
+  --nav-h: 72px;
+}
+.wrap { max-width: 1280px; width: 100%; margin: 0 auto; }
+
+/* Shared typographic pieces */
+.eyebrow {
+  font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--color-accent-300); font-weight: 500;
+}
+.h2 {
+  margin: 0; font-size: clamp(40px, 6vw, 88px); line-height: .95;
+  font-weight: 500; letter-spacing: -.04em;
+}
+.em { font-style: italic; font-weight: 400; color: var(--color-accent-300); }
+.muted { color: var(--color-neutral-400); }
+
+/* Buttons */
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--color-accent); border-radius: 8px;
+  color: var(--color-text); text-decoration: none; font-size: 15px; font-weight: 500;
+  white-space: nowrap; background: transparent; cursor: pointer;
+  transition: background .2s;
+}
+.btn-outline:hover { background: var(--color-accent-900); color: var(--color-text); }
+.btn-ghost-surface {
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--color-neutral-800); border-radius: 8px;
+  color: var(--color-text); text-decoration: none; font-size: 15px; font-weight: 500;
+  background: var(--color-surface); cursor: pointer; transition: background .2s;
+}
+.btn-ghost-surface:hover { background: var(--color-neutral-900); color: var(--color-text); }
+
+.ph-accent { color: var(--color-accent-300); }
+
+/* Components that animate (mb-*) sit behind content unless positioned otherwise */
+mb-strands { position: absolute; inset: 0; display: block; pointer-events: none; }
