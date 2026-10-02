@@ -5,6 +5,7 @@ import './styles/sections/nav.css';
 import './styles/sections/hero.css';
 import './styles/sections/services.css';
 import './styles/sections/stylists.css';
+import './styles/sections/marquee.css';
 
 import './lib/logo.js';
 import { MBMotion } from './lib/motion.js';
