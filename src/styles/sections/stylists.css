@@ -1,0 +1,32 @@
+/* ── Stylists ───────────────────────────────────────────────── */
+.stylists { padding: clamp(72px, 10vw, 140px) var(--gutter); scroll-margin-top: var(--nav-h); }
+.stylists-inner { display: flex; flex-direction: column; gap: clamp(40px, 5vw, 64px); }
+.stylists-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.stylists-head > div { display: flex; flex-direction: column; gap: 16px; }
+.stylists-head p { margin: 0; max-width: 360px; font-size: 16px; line-height: 1.6; color: var(--color-neutral-400); }
+.team {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(24px, 2.5vw, 32px); align-items: start;
+}
+.member { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+/* Staggered heights on desktop */
+@media (min-width: 760px) {
+  .member:nth-child(2) { margin-top: 96px; }
+  .member:nth-child(3) { margin-top: 40px; }
+}
+.member-photo {
+  height: clamp(380px, 34vw, 500px); border-radius: 8px; overflow: hidden;
+  box-shadow: 0 0 0 1px var(--color-neutral-800);
+}
+.member-name { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.member-name b { font-size: 26px; font-weight: 500; letter-spacing: -.02em; }
+.member-name span { font-size: 13px; color: var(--color-accent-300); font-variant-numeric: tabular-nums; }
+.member-bio { display: flex; flex-direction: column; gap: 6px; }
+.member-bio span:first-child { font-size: 14px; color: var(--color-accent-300); }
+.member-bio span:last-child { font-size: 15px; line-height: 1.55; color: var(--color-neutral-400); }
+.member-book {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 4px;
+  border: none; border-bottom: 1px solid var(--color-accent); background: none;
+  color: var(--color-text); font-size: 15px; font-weight: 500; cursor: pointer;
+}
+.member-book:hover { color: #d2cefd; }
