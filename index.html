@@ -15,6 +15,26 @@
 </head>
 <body>
   <div class="page">
+    <nav class="site-nav" aria-label="Main">
+      <a class="nav-brand" href="#top"><mb-logo variant="strand" size="40" animate="true" hover-replay="true"></mb-logo><span>MB Hair Salon</span></a>
+      <div class="nav-links">
+        <a class="nav-link" href="#services">Services</a>
+        <a class="nav-link" href="#stylists">Stylists</a>
+        <a class="nav-link" href="#gallery">Gallery</a>
+        <a class="nav-link" href="#visit">Visit</a>
+        <a class="btn-outline" href="#book">Book appointment</a>
+      </div>
+      <button class="nav-burger" type="button" aria-label="Menu" aria-controls="menu" aria-expanded="false"><i class="ph ph-list"></i></button>
+    </nav>
+
+    <div class="menu" id="menu" hidden>
+      <a class="menu-link" data-menu-item href="#services"><span>Services</span><small>01</small></a>
+      <a class="menu-link" data-menu-item href="#stylists"><span>Stylists</span><small>02</small></a>
+      <a class="menu-link" data-menu-item href="#gallery"><span>Gallery</span><small>03</small></a>
+      <a class="menu-link" data-menu-item href="#visit"><span>Visit</span><small>05</small></a>
+      <a class="btn-outline" data-menu-item href="#book">Book appointment <i class="ph ph-arrow-right"></i></a>
+    </div>
+
     <!-- sections -->
   </div>
   <script type="module" src="/src/main.js"></script>
