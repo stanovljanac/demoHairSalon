@@ -13,18 +13,13 @@ mb-cutline { display: block; height: 120px; }
 
 .cat-tabs { display: flex; flex-wrap: wrap; column-gap: clamp(20px, 3vw, 48px); row-gap: 4px; align-items: flex-start; }
 .cat-tab {
-  display: flex; align-items: flex-start; gap: 6px; padding: 0; border: none; background: none; cursor: pointer;
+  display: flex; align-items: flex-start; padding: 0; border: none; background: none; cursor: pointer;
   font-size: clamp(40px, 8vw, 124px); line-height: 1.02; font-weight: 500; letter-spacing: -.045em;
   color: transparent; -webkit-text-stroke: 1px #9397ab; transition: color .35s;
 }
 .cat-tab:hover { -webkit-text-stroke-color: #9184d9; }
-.cat-tab sup {
-  font-size: 13px; letter-spacing: 0; -webkit-text-stroke: 0; color: #9397ab;
-  margin-top: .5em; font-weight: 500; vertical-align: baseline; line-height: 1;
-}
 .cat-tab[aria-selected="true"] { color: #e9e9ed; -webkit-text-stroke-color: #e9e9ed; }
 .cat-tab[aria-selected="true"]:hover { -webkit-text-stroke-color: #9184d9; }
-.cat-tab[aria-selected="true"] sup { color: #d2cefd; }
 
 .services-body { display: flex; flex-wrap: wrap; align-items: flex-start; gap: clamp(32px, 4vw, 64px); }
 .svc-panel {
@@ -41,19 +36,31 @@ mb-cutline { display: block; height: 120px; }
 .svc-caption span { color: var(--color-accent-300); text-align: right; }
 
 .svc-list { order: 1; flex: 1.35 1 460px; min-width: 0; display: flex; flex-direction: column; }
+/* Each row is the toggle itself: a hairline accent bar slides in and the name lights up when it's picked. */
 .svc {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px;
-  padding: 24px 0; border-bottom: 1px solid var(--color-neutral-800);
+  position: relative; display: flex; align-items: center; gap: 14px 20px; width: 100%;
+  padding: 24px 0; border: none; border-bottom: 1px solid var(--color-neutral-800); border-radius: 0;
+  background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: padding-left .45s cubic-bezier(.2,.7,.2,1);
 }
-.svc-info { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.svc::before {
+  content: ""; position: absolute; left: 0; top: 24px; bottom: 24px; width: 2px; border-radius: 2px;
+  background: var(--color-accent); transform: scaleY(0); transform-origin: top;
+  transition: transform .45s cubic-bezier(.2,.7,.2,1);
+}
+.svc:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; border-radius: 4px; }
+.svc.is-on { padding-left: 20px; }
+.svc.is-on::before { transform: scaleY(1); }
+.svc-info { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 .svc-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
-.svc-name { font-size: clamp(19px, 1.6vw, 22px); font-weight: 500; }
+.svc-name { font-size: clamp(19px, 1.6vw, 22px); font-weight: 500; transition: color .25s; }
+.svc:hover .svc-name, .svc.is-on .svc-name { color: var(--color-accent-200); }
 .svc-dur { font-size: 13px; color: var(--color-neutral-400); }
 .svc-desc { font-size: 14px; line-height: 1.55; color: var(--color-neutral-400); }
-.svc-action { display: flex; align-items: center; gap: 16px; flex: none; }
-.svc-price { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+.svc-price { flex: none; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; transition: color .25s; }
+.svc.is-on .svc-price { color: var(--color-accent-300); }
 
-/* Selectable chip used by the menu and the booking form */
+/* Selectable chip used by the booking form */
 .chip {
   height: 44px; padding: 0 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
   border: 1px solid #3f424d; background: transparent; color: #cfd3e5; transition: background .2s;
