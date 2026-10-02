@@ -6,6 +6,7 @@ import './styles/sections/hero.css';
 import './styles/sections/services.css';
 import './styles/sections/stylists.css';
 import './styles/sections/marquee.css';
+import './styles/sections/gallery.css';
 
 import './lib/logo.js';
 import { MBMotion } from './lib/motion.js';
@@ -15,6 +16,7 @@ import { logoVariant } from './config.js';
 import { initNav } from './sections/nav.js';
 import { initServices } from './sections/services.js';
 import { initStylists } from './sections/stylists.js';
+import { initGallery } from './sections/gallery.js';
 
 // Apply the chosen logo variant everywhere (logos + favicon).
 const variant = logoVariant();
@@ -30,5 +32,6 @@ const initMotion = (delay = 40) => { clearTimeout(motionTimer); motionTimer = se
 initNav();
 initServices(initMotion);
 initStylists();
+initGallery();
 
 initMotion(80);
