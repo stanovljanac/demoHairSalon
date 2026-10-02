@@ -1,0 +1,65 @@
+/* ── Cut-line transition ────────────────────────────────────── */
+mb-cutline { display: block; height: 120px; }
+
+/* ── Services ("The menu") ──────────────────────────────────── */
+.services {
+  position: relative; overflow: hidden; background: var(--color-surface);
+  padding: clamp(48px, 7vw, 96px) var(--gutter) clamp(72px, 10vw, 140px);
+  scroll-margin-top: var(--nav-h);
+}
+.services-inner { position: relative; display: flex; flex-direction: column; gap: clamp(36px, 5vw, 64px); }
+.services-head { display: flex; flex-direction: column; gap: 16px; max-width: min(calc(100% - 120px), 680px); }
+.services-head p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--color-neutral-400); text-wrap: pretty; }
+
+.cat-tabs { display: flex; flex-wrap: wrap; column-gap: clamp(20px, 3vw, 48px); row-gap: 4px; align-items: flex-start; }
+.cat-tab {
+  display: flex; align-items: flex-start; gap: 6px; padding: 0; border: none; background: none; cursor: pointer;
+  font-size: clamp(40px, 8vw, 124px); line-height: 1.02; font-weight: 500; letter-spacing: -.045em;
+  color: transparent; -webkit-text-stroke: 1px #9397ab; transition: color .35s;
+}
+.cat-tab:hover { -webkit-text-stroke-color: #9184d9; }
+.cat-tab sup {
+  font-size: 13px; letter-spacing: 0; -webkit-text-stroke: 0; color: #9397ab;
+  margin-top: .5em; font-weight: 500; vertical-align: baseline; line-height: 1;
+}
+.cat-tab[aria-selected="true"] { color: #e9e9ed; -webkit-text-stroke-color: #e9e9ed; }
+.cat-tab[aria-selected="true"]:hover { -webkit-text-stroke-color: #9184d9; }
+.cat-tab[aria-selected="true"] sup { color: #d2cefd; }
+
+.services-body { display: flex; flex-wrap: wrap; align-items: flex-start; gap: clamp(32px, 4vw, 64px); }
+.svc-panel {
+  order: 2; flex: 1 1 340px; min-width: 0; position: sticky; top: 96px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.svc-stage {
+  position: relative; height: clamp(300px, 34vw, 500px); border-radius: 14px; overflow: hidden;
+  background: var(--color-bg); box-shadow: 0 0 0 1px var(--color-neutral-800);
+}
+.svc-stage mb-3d { position: absolute; inset: 0; }
+.svc-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; font-size: 13px; }
+.svc-caption b { font-weight: 500; color: var(--color-text); }
+.svc-caption span { color: var(--color-accent-300); text-align: right; }
+
+.svc-list { order: 1; flex: 1.35 1 460px; min-width: 0; display: flex; flex-direction: column; }
+.svc {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px;
+  padding: 24px 0; border-bottom: 1px solid var(--color-neutral-800);
+}
+.svc-info { flex: 1 1 220px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.svc-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.svc-name { font-size: clamp(19px, 1.6vw, 22px); font-weight: 500; }
+.svc-dur { font-size: 13px; color: var(--color-neutral-400); }
+.svc-desc { font-size: 14px; line-height: 1.55; color: var(--color-neutral-400); }
+.svc-action { display: flex; align-items: center; gap: 16px; flex: none; }
+.svc-price { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* Selectable chip used by the menu and the booking form */
+.chip {
+  height: 44px; padding: 0 18px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+  border: 1px solid #3f424d; background: transparent; color: #cfd3e5; transition: background .2s;
+}
+.chip.is-on { border-color: #9184d9; background: #2b2741; color: #e7e5fe; }
+
+@media (max-width: 759.98px) {
+  .svc-panel { order: 0; position: static; }
+}
