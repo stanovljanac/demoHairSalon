@@ -9,6 +9,7 @@ import './styles/sections/marquee.css';
 import './styles/sections/gallery.css';
 import './styles/sections/booking.css';
 import './styles/sections/visit.css';
+import './styles/sections/footer.css';
 
 import './lib/logo.js';
 import { MBMotion } from './lib/motion.js';
@@ -21,6 +22,7 @@ import { initStylists } from './sections/stylists.js';
 import { initGallery } from './sections/gallery.js';
 import { initBooking } from './sections/booking.js';
 import { initVisit } from './sections/visit.js';
+import { initFooter } from './sections/footer.js';
 
 // Apply the chosen logo variant everywhere (logos + favicon).
 const variant = logoVariant();
@@ -39,5 +41,6 @@ initStylists();
 initGallery();
 initBooking();
 initVisit();
+initFooter();
 
 initMotion(80);
