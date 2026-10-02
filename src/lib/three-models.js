@@ -1,4 +1,4 @@
-// <mb-3d> — three.js models: dryer-hair, clipper-flat, spray-hair, chair (+ legacy dryer/spray/clipper).
+// <mb-3d> — three.js models: dryer-hair, clipper-flat, spray-hair, balayage, chair (+ legacy dryer/spray/clipper).
 // three.js is code-split and only fetched once a 3D model scrolls into view.
 let P; const load = () => P || (P = import('three'));
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -21,7 +21,8 @@ function particles(T, n, color, size) {
     step(dt, drag, lift) {
       L.forEach((q, i) => { if (q.life > 0) { q.life -= dt; q.v.multiplyScalar(Math.max(0, 1 - drag * dt)); q.v.y += lift * dt; q.p.addScaledVector(q.v, dt); }
         const f = q.life > 0 ? Math.sin(Math.max(0, q.life / q.max) * Math.PI) : 0;
-        pos[i * 3] = q.p.x; pos[i * 3 + 1] = q.p.y; pos[i * 3 + 2] = q.p.z; col[i * 3] = base.r * f; col[i * 3 + 1] = base.g * f; col[i * 3 + 2] = base.b * f; });
+        // Dead ones are parked far outside the view: black but not transparent, they'd leave a dark dot on the canvas.
+        pos[i * 3] = q.p.x; pos[i * 3 + 1] = q.life > 0 ? q.p.y : -1e4; pos[i * 3 + 2] = q.p.z; col[i * 3] = base.r * f; col[i * 3 + 1] = base.g * f; col[i * 3 + 2] = base.b * f; });
       geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true;
     }
   };
@@ -213,7 +214,204 @@ function chair(T, m) {
   add(new T.BoxGeometry(0.04, 0.04, 0.45), m.chrome, o => { o.position.set(0, -1.02, 0.22); }, top);
   return { g, top, wheels };
 }
+// ── Balayage (Colour tab) ──────────────────────────────────────
+// A tint brush dips into a bowl of dye and hand-paints a clipped-up lock one stroke at a time. Colour lands only
+// where the bristles actually touch (the hair parts and presses back under them) and goes on wet and glossy; a
+// shine runs down the finished lock, the colour rinses out top-down and the bowl turns to the next shade.
+const DYES = [[0x796cbf, 0xd2cefd], [0xb2b6ca, 0xf3f5fe], [0x968ae0, 0xe7e5fe]]; // [mid-length, ends]
+const smooth = (a, b, x) => { const k = Math.max(0, Math.min(1, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+
+function tintBrush(T, m) {
+  // Bristle tips sit at the origin and the brush runs up local +y: flat ferrule, handle, then the tail-comb pin.
+  const g = new T.Group(), L = 0.28, add = (geo, mat, f) => { const o = new T.Mesh(geo, mat); f && f(o); g.add(o); return o; };
+  add(new T.CylinderGeometry(0.1, 0.165, 0.16, 48), m.chrome, o => { o.scale.z = 0.3; o.position.y = L + 0.08; });
+  add(new T.TorusGeometry(0.1, 0.012, 8, 48), m.acc, o => { o.rotation.x = Math.PI / 2; o.scale.y = 0.3; o.position.y = L + 0.16; });
+  add(new T.CylinderGeometry(0.034, 0.055, 0.82, 28), m.body, o => { o.position.y = L + 0.57; });
+  add(new T.TorusGeometry(0.05, 0.009, 8, 32), m.acc, o => { o.rotation.x = Math.PI / 2; o.position.y = L + 0.3; });
+  add(new T.CylinderGeometry(0.003, 0.03, 0.48, 16), m.chrome, o => { o.position.y = L + 1.22; });
+  const nb = 180, segs = 5, B = [];
+  for (let i = 0; i < nb; i++) { const u = (i + Math.random()) / nb - 0.5; B.push({ x: u * 0.29, z: rnd(-0.034, 0.034), tx: u * 0.33, tz: rnd(-0.048, 0.048), ty: rnd(0, 0.03), br: rnd(0.72, 1.05) }); }
+  const pos = new Float32Array(nb * segs * 6), col = new Float32Array(nb * segs * 6);
+  const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.BufferAttribute(pos, 3)); geo.setAttribute('color', new T.BufferAttribute(col, 3));
+  const lines = new T.LineSegments(geo, new T.LineBasicMaterial({ vertexColors: true })); lines.frustumCulled = false; g.add(lines);
+  const cB = new T.Color(0xd9dcea), c = new T.Color();
+  // bx/bz: how far the tips bend (local x/z); press: how hard they're pushed into the hair; load: dye on the tips.
+  return { g, update(bx, bz, press, load, dye) {
+    let w = 0, o = 0;
+    for (const q of B) {
+      let px = 0, py = 0, pz = 0;
+      for (let j = 0; j <= segs; j++) {
+        const s = j / segs, s2 = s * s;
+        const x = q.x + (q.tx - q.x) * s + (bx + q.tx * press * 0.6) * s2, y = L - (L - q.ty) * s + press * 0.05 * s2, z = q.z + (q.tz - q.z) * s + bz * s2;
+        if (j) {
+          pos[w++] = px; pos[w++] = py; pos[w++] = pz; pos[w++] = x; pos[w++] = y; pos[w++] = z;
+          for (const ss of [(j - 1) / segs, s]) { c.copy(cB).lerp(dye, load * smooth(0.3, 0.95, ss)); col[o++] = c.r * q.br; col[o++] = c.g * q.br; col[o++] = c.b * q.br; }
+        }
+        px = x; py = y; pz = z;
+      }
+    }
+    geo.attributes.position.needsUpdate = true; geo.attributes.color.needsUpdate = true;
+  } };
+}
+
+function balayage(T, m, scene, look) {
+  const CX = 0.35, ROOT = 2.05, LEN = 3.4, ZF = 0.2, D = 11.6, T0 = 1.7, SD = 1.25; // D: one full cycle (s)
+  const STROKES = [[-0.18, 0.3], [0.15, 0.4], [-0.01, 0.24], [0.29, 0.46], [-0.33, 0.42]], T1 = T0 + STROKES.length * SD;
+  // x of a strand that leaves the clip at rx, a fraction s of the way down: the lock fans out and bows a little.
+  const lx = (rx, s) => rx + (rx - CX) * s * 0.85 + Math.sin(s * 2.6) * s * 0.1;
+  const rig = new T.Group(); scene.add(rig); look.set(0, 0.05, 0);
+  const tmp = new T.Vector3(), c = new T.Color(), c2 = new T.Color(), cA = new T.Color(), cB = new T.Color(), cBowl = new T.Color(), cNext = new T.Color();
+  const cN0 = new T.Color(0x3d4050), cN1 = new T.Color(0x676b7e), cW = new T.Color(0xffffff);
+
+  // The lock, held up by a sectioning clip. ps/pe: where the paint starts and how far down it has reached.
+  const N = 230, P = 26, segs = P - 1, S = [];
+  for (let i = 0; i < N; i++) S.push({ rx: CX + (rnd(-1, 1) + rnd(-1, 1)) * 0.19, rz: rnd(-0.17, 0.17), len: rnd(3.25, 3.55), a: rnd(0.01, 0.035), f: rnd(3, 7), ph: rnd(0, 6.28), br: rnd(0.75, 1.15), skip: Math.random() < 0.16, jit: rnd(-0.05, 0.1), ps: 9, pe: -1 });
+  const lpos = new Float32Array(N * segs * 6), lcol = new Float32Array(N * segs * 6), wet = new Float32Array(N * P), pt = new Float32Array(P * 3), pc = new Float32Array(P * 3);
+  const lgeo = new T.BufferGeometry(); lgeo.setAttribute('position', new T.BufferAttribute(lpos, 3)); lgeo.setAttribute('color', new T.BufferAttribute(lcol, 3));
+  const lock = new T.LineSegments(lgeo, new T.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.95 })); lock.frustumCulled = false; rig.add(lock);
+  [[0, m.chrome, 0.05], [0.075, m.acc, 0.032]].forEach(([y, mat, r]) => { const o = new T.Mesh(new T.CapsuleGeometry(r, 0.82, 8, 24), mat); o.rotation.z = Math.PI / 2; o.scale.z = 0.6; o.position.set(CX, ROOT + 0.02 + y, 0); rig.add(o); });
+
+  // The tint bowl and the dye in it; the dye surface ripples where the brush and the drips go in.
+  const BOWL = new T.Vector3(-1.35, -1.9, 0.4), BS = 1.15, SY = 0.33, SURF = BOWL.y + SY * BS, BR = 0.44 * BS;
+  const bowl = new T.Group(); bowl.position.copy(BOWL); bowl.scale.setScalar(BS); rig.add(bowl);
+  const prof = [[0, 0], [0.3, 0], [0.34, 0.02], [0.46, 0.26], [0.56, 0.42], [0.6, 0.45], [0.585, 0.47], [0.535, 0.445], [0.44, 0.3], [0.31, 0.07], [0, 0.07]].map(([x, y]) => new T.Vector2(x, y));
+  bowl.add(new T.Mesh(new T.LatheGeometry(prof, 72), new T.MeshPhysicalMaterial({ color: 0x2b2d3a, roughness: 0.28, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.12, side: T.DoubleSide })));
+  { const sh = shadowDisc(T, 0.75); sh.position.y = 0.002; bowl.add(sh); }
+  [[0.592, 0.014, 0.458, m.acc], [0.31, 0.028, 0.02, m.dark]].forEach(([r, tube, y, mat]) => { const o = new T.Mesh(new T.TorusGeometry(r, tube, 10, 72), mat); o.rotation.x = Math.PI / 2; o.position.y = y; bowl.add(o); });
+  const dyeMat = new T.MeshPhysicalMaterial({ color: DYES[0][0], roughness: 0.16, clearcoat: 1, clearcoatRoughness: 0.05 });
+  const sgeo = new T.RingGeometry(0.001, 0.468, 56, 12), sp = sgeo.attributes.position, sbase = Float32Array.from(sp.array);
+  const surf = new T.Mesh(sgeo, dyeMat); surf.rotation.x = -Math.PI / 2; surf.position.y = SY; bowl.add(surf);
+  const rip = []; let rippling = false;
+  const addRipple = (x, z, amp) => { if (rip.length < 14) rip.push({ x: (x - BOWL.x) / BS, y: (BOWL.z - z) / BS, age: 0, amp }); };
+  const ripple = dt => {
+    for (let i = rip.length - 1; i >= 0; i--) if ((rip[i].age += dt) > 2.4) rip.splice(i, 1);
+    if (!rip.length && !rippling) return;
+    for (let i = 0; i < sp.count; i++) {
+      const x = sbase[i * 3], y = sbase[i * 3 + 1]; let h = 0;
+      for (const r of rip) { const d = Math.hypot(x - r.x, y - r.y), fr = r.age * 0.5; h += r.amp * Math.exp(-r.age * 2.2 - d * 2) * Math.sin(d * 34 - r.age * 17) * smooth(fr + 0.06, fr - 0.06, d); }
+      sp.array[i * 3 + 2] = h;
+    }
+    sp.needsUpdate = true; sgeo.computeVertexNormals(); rippling = rip.length > 0;
+  };
+
+  // Drips: glossy droplets that fall off the loaded brush (and ripple the dye when they land back in the bowl).
+  const ND = 40, dropMat = new T.MeshPhysicalMaterial({ color: DYES[0][0], roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 });
+  const drops = new T.InstancedMesh(new T.SphereGeometry(1, 14, 10), dropMat, ND), DR = Array.from({ length: ND }, () => ({ on: false, p: new T.Vector3(), v: new T.Vector3(), r: 0 }));
+  drops.frustumCulled = false; rig.add(drops);
+  const off = new T.Matrix4().makeScale(0, 0, 0), dm = new T.Matrix4(), dq = new T.Quaternion(), ds = new T.Vector3(); let dk = 0;
+  for (let i = 0; i < ND; i++) drops.setMatrixAt(i, off);
+  const fx = particles(T, 240, 0xf5f4ff, 0.06); rig.add(fx.pts);
+
+  // The brush follows a planned path on a critically damped spring; its bristles bend on a looser one.
+  const brush = tintBrush(T, m); brush.g.scale.setScalar(0.92); rig.add(brush.g);
+  const p = new T.Vector3(BOWL.x + 0.06, SURF - 0.06, BOWL.z + 0.04), v = new T.Vector3(), tgt = new T.Vector3();
+  const ax = new T.Vector3(-0.5, 0.85, 0.3).normalize(), axT = new T.Vector3(), xa = new T.Vector3(), za = new T.Vector3(), Z = new T.Vector3(0, 0, 1), M4 = new T.Matrix4();
+  const bend = new T.Vector2(), bendV = new T.Vector2(), bendT = new T.Vector2();
+  const at = (u, s) => tgt.set(lx(CX + u, s), ROOT - s * LEN, ZF);
+  const plan = t => {
+    if (t < T0) {                                   // dip, stir, lift out
+      if (t < 0.5) tgt.set(BOWL.x, SURF + 0.62, BOWL.z);
+      else if (t < 1.25) { const th = (t - 0.5) * 10; tgt.set(BOWL.x + Math.cos(th) * 0.15, SURF - 0.08, BOWL.z + Math.sin(th) * 0.15); }
+      else tgt.set(BOWL.x + 0.2, SURF + 0.85, BOWL.z + 0.1);
+      axT.set(-0.12, 1, t < 1.25 ? 0.12 : 0.35);
+    } else if (t < T1) {                            // strokes: hover, touch down, sweep to the ends, flick off
+      const f = (t - T0) / SD, j = Math.floor(f), q = f - j, [u, s0] = STROKES[j];
+      if (q < 0.22) { at(u, s0); tgt.y += 0.12; tgt.z += 0.42; }
+      else if (q < 0.3) { at(u, s0); tgt.z -= 0.05; }
+      else if (q < 0.8) { const k = 0.5 - 0.5 * Math.cos(Math.PI * (q - 0.3) / 0.5); at(u + Math.sin(k * Math.PI) * 0.05, s0 + (1.12 - s0) * k); tgt.z -= 0.05; }
+      else { at(u + 0.05, 1.16); tgt.z += 0.5; }
+      axT.set(-0.28, 0.85, q < 0.8 ? 0.45 : 0.3);
+    } else if (t < T1 + 0.55) { tgt.set(BOWL.x + 0.1, SURF + 0.7, BOWL.z + 0.05); axT.set(-0.3, 1, 0.2); }
+    else { tgt.set(BOWL.x + 0.06, SURF - 0.06, BOWL.z + 0.04); axT.set(-0.5, 0.85, 0.3); } // rests in the bowl
+  };
+
+  let clock = 0, cyc = 0, dye = 0, load = 1, press = 0, dripT = 0, ripT = 0, inDye = true;
+  const step = dt => {
+    clock += dt; const n = Math.floor(clock / D), t = clock - n * D;
+    if (n !== cyc) { cyc = n; dye = (dye + 1) % DYES.length; for (const q of S) { q.ps = 9; q.pe = -1; } wet.fill(0); }
+    const cur = DYES[dye], nxt = DYES[(dye + 1) % DYES.length], mix = smooth(D - 1.6, D - 0.2, t);
+    cA.set(cur[0]); cB.set(cur[1]); cBowl.set(cur[0]).lerp(cNext.set(nxt[0]), mix); dyeMat.color.copy(cBowl); dropMat.color.copy(cBowl);
+
+    plan(t); axT.normalize();
+    const K = 20, sub = Math.max(1, Math.ceil(dt * K / 0.25)), h = dt / sub;
+    xa.crossVectors(ax, Z).normalize(); za.crossVectors(xa, ax);
+    for (let i = 0; i < sub; i++) {
+      tmp.copy(tgt).sub(p).multiplyScalar(K * K).addScaledVector(v, -2 * K); v.addScaledVector(tmp, h); p.addScaledVector(v, h);
+      // Tips trail the motion and get pushed back off the hair (toward +z) while pressing.
+      bendT.set(-v.dot(xa) * 0.035 + Z.dot(xa) * press * 0.1, -v.dot(za) * 0.035 + Z.dot(za) * press * 0.1).clampScalar(-0.13, 0.13);
+      bendV.x += ((bendT.x - bend.x) * 90 - bendV.x * 9) * h; bendV.y += ((bendT.y - bend.y) * 90 - bendV.y * 9) * h;
+      bend.addScaledVector(bendV, h);
+    }
+    ax.lerp(axT, 1 - Math.exp(-dt * 6)).normalize();
+    xa.crossVectors(ax, Z).normalize(); za.crossVectors(xa, ax);
+    brush.g.quaternion.setFromRotationMatrix(M4.makeBasis(xa, ax, za)); brush.g.position.copy(p);
+
+    const touching = p.z < ZF + 0.06 && p.y < ROOT && p.y > ROOT - LEN * 1.15 && Math.abs(p.x - CX) < 0.75;
+    press += ((touching ? Math.min(1, (ZF + 0.06 - p.z) / 0.1) : 0) - press) * Math.min(1, dt * 18);
+    const submerged = Math.hypot(p.x - BOWL.x, p.z - BOWL.z) < BR && p.y < SURF + 0.01;
+    if (submerged !== inDye) addRipple(p.x, p.z, 0.03);
+    if (submerged) { load = Math.min(1, load + dt * 2.5); if ((ripT -= dt) <= 0 && v.length() > 0.3) { addRipple(p.x, p.z, 0.008); ripT = 0.12; } }
+    else if (press > 0.2) load = Math.max(0.35, load - dt * 0.09);
+    inDye = submerged;
+    brush.update(bend.x, bend.y, press, load, cBowl);
+
+    if (!submerged && press < 0.1 && load > 0.3 && p.y > SURF + 0.03 && (dripT -= dt) <= 0) {
+      const d = DR[dk = (dk + 1) % ND]; d.on = true; d.r = rnd(0.016, 0.03);
+      d.p.copy(p).add(tmp.set(rnd(-0.06, 0.06), -0.02, rnd(-0.02, 0.02))); d.v.copy(v).multiplyScalar(0.25); d.v.y -= 0.3;
+      dripT = rnd(0.4, 1.2) / (t > 1.2 && t < T0 + 0.3 ? 7 : 1.4) / load;
+    }
+    DR.forEach((d, i) => {
+      if (d.on) {
+        d.v.y -= 7 * dt; d.p.addScaledVector(d.v, dt);
+        if (d.p.y < SURF && Math.hypot(d.p.x - BOWL.x, d.p.z - BOWL.z) < BR) { addRipple(d.p.x, d.p.z, 0.012); d.on = false; }
+        else if (d.p.y < -2.8) d.on = false;
+      }
+      if (d.on) { ds.set(d.r, d.r * (1 + Math.min(1.6, d.v.length() * 0.22)), d.r); drops.setMatrixAt(i, dm.compose(d.p, dq, ds)); } else drops.setMatrixAt(i, off);
+    });
+    drops.instanceMatrix.needsUpdate = true;
+    ripple(dt);
+
+    // The lock: paint where the bristles touch, part the hair around them, then colour every point.
+    const rinse = t > D - 1.6 ? (t - (D - 1.6)) / 1.35 * 1.3 - 0.1 : -1, shine = t > T1 + 0.2 && t < T1 + 2 ? (t - T1 - 0.2) / 1.8 * 1.5 - 0.2 : -9;
+    const decay = Math.exp(-dt * 0.7); let w = 0;
+    for (let i = 0; i < N; i++) {
+      const q = S[i];
+      if (press > 0.15 && !q.skip) {
+        const s = (ROOT - p.y) / q.len, sx = lx(q.rx, s);
+        if (s > 0 && s < 1.2 && Math.abs(sx - p.x) < 0.15 + press * 0.05) {
+          if (q.ps > 8) q.ps = Math.max(0, s + q.jit);
+          if (s > q.pe) { for (let j = Math.max(0, Math.ceil(q.pe * segs)); j <= Math.min(segs, Math.floor(s * segs)); j++) wet[i * P + j] = 1; q.pe = s; }
+        }
+      }
+      for (let j = 0; j < P; j++) {
+        const s = j / segs; let x = lx(q.rx, s) + Math.sin(s * q.f + q.ph + clock * 0.6) * q.a * s, y = ROOT - s * q.len, z = q.rz * (1 + s * 0.3);
+        if (press > 0.01) { const dx = x - p.x, dy = y - p.y, g = press * Math.exp(-dx * dx / 0.05 - dy * dy / 0.09); x += dx * g * 0.5; z -= g * 0.12; }
+        pt[j * 3] = x; pt[j * 3 + 1] = y; pt[j * 3 + 2] = z;
+        c.copy(cN0).lerp(cN1, s);
+        let a = q.pe > 0 ? smooth(q.ps - 0.07, q.ps + 0.07, s) * smooth(q.pe + 0.03, q.pe - 0.01, s) : 0;
+        if (rinse > -1) a *= smooth(rinse - 0.1, rinse + 0.05, s);
+        if (a > 0) {
+          c2.copy(cA).lerp(cB, Math.pow(Math.min(1, Math.max(0, (s - q.ps) / Math.max(0.2, 1.05 - q.ps))), 1.8) * 0.85); c.lerp(c2, a);
+          const gl = wet[i * P + j] * 0.3 + (shine > -9 ? Math.exp(-(((s - shine) / 0.06) ** 2)) * 0.5 : 0); if (gl > 0.01) c.lerp(cW, Math.min(0.7, gl) * a);
+        }
+        wet[i * P + j] *= decay;
+        pc[j * 3] = c.r * q.br; pc[j * 3 + 1] = c.g * q.br; pc[j * 3 + 2] = c.b * q.br;
+      }
+      for (let j = 0; j < segs; j++) { lpos.set(pt.subarray(j * 3, j * 3 + 6), w); lcol.set(pc.subarray(j * 3, j * 3 + 6), w); w += 6; }
+      if (shine > 0 && shine < 1.1 && q.pe > shine && q.ps < shine && Math.random() < dt * 9) { const s = shine + rnd(-0.03, 0.03); fx.emit(tmp.set(lx(q.rx, s), ROOT - s * q.len, q.rz + 0.05), Z, 0.9, 0.25, 0.9); }
+    }
+    lgeo.attributes.position.needsUpdate = true; lgeo.attributes.color.needsUpdate = true;
+    fx.step(dt, 1.2, 0.3);
+  };
+  // Reduced motion: one still frame, so show the finished lock with the brush back in the bowl.
+  if (reduce) { for (let i = 0, n = Math.round((T1 + 1.95) * 30); i < n; i++) step(1 / 30); fx.step(5, 1, 0); }
+  return { obj: { g: rig }, fx, base: 7.7, half: 2.45, camY: 0.55, upd: (dt, t, px, py) => {
+    rig.rotation.set(0.1 + py * 0.08, -0.32 + px * 0.35, 0); step(dt);
+  } };
+}
+
 function build3(T, m, model, scene, look, el) {
+  if (model === 'balayage') return balayage(T, m, scene, look);
   const tmp = new T.Vector3(), dir = new T.Vector3();
   if (model === 'chair') {
     const obj = chair(T, m); scene.add(obj.g); look.set(0, -0.5, 0);
@@ -326,7 +524,7 @@ class MB3D extends HTMLElement {
     const m = mats(T), model = this.getAttribute('model') || 'dryer', outer = new T.Group(); scene.add(outer);
     let obj, fx, base, half, upd = null; const look = new T.Vector3();
     let camY = 0.2;
-    if (['dryer-hair', 'clipper', 'clipper-flat', 'spray-hair', 'chair'].includes(model)) { const b = build3(T, m, model, scene, look, this); ({ obj, fx, base, half, upd } = b); if (b.camY != null) camY = b.camY; }
+    if (['dryer-hair', 'clipper', 'clipper-flat', 'spray-hair', 'chair', 'balayage'].includes(model)) { const b = build3(T, m, model, scene, look, this); ({ obj, fx, base, half, upd } = b); if (b.camY != null) camY = b.camY; }
     else if (model === 'spray') { obj = spray(T, m); obj.g.position.set(-0.9, -0.2, 0); fx = particles(T, 800, 0xd2cefd, 0.17); base = 6.4; half = 2.4; }
     else { obj = dryer(T, m); obj.g.position.set(0.2, 0.6, 0); fx = particles(T, 520, 0xb5abfc, 0.1); base = 7.4; half = 2.1; }
     if (!upd) { outer.add(obj.g); scene.add(fx.pts); }
