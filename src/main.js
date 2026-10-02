@@ -2,6 +2,7 @@ import '@phosphor-icons/web/regular';
 import './styles/nocturne.css';
 import './styles/base.css';
 import './styles/sections/nav.css';
+import './styles/sections/hero.css';
 
 import './lib/logo.js';
 import { MBMotion } from './lib/motion.js';
