@@ -29,10 +29,11 @@ export const PANELS = {
   cut: { title: 'Clipper fade', note: 'Trimming the sides', html: '<mb-3d model="clipper"></mb-3d>' }
 };
 
+// photo: portrait in public/photos/; focus: the point kept in view when the card crops it.
 export const TEAM = [
-  { id: 'mila', name: 'Mila B.', first: 'Mila', role: 'Founder · Creative director', bio: 'Precision cuts and shape. Fifteen years behind the chair.' },
-  { id: 'jonah', name: 'Jonah K.', first: 'Jonah', role: 'Colour specialist', bio: 'Balayage, blondes and corrective colour.' },
-  { id: 'rae', name: 'Rae O.', first: 'Rae', role: 'Texture & curls', bio: 'Curly cuts, coils and bond-repair treatments.' }
+  { id: 'mila', name: 'Mila B.', first: 'Mila', role: 'Founder · Creative director', bio: 'Precision cuts and shape. Fifteen years behind the chair.', photo: 'photos/stylist-mila.webp', focus: '50% 30%' },
+  { id: 'jonah', name: 'Jonah K.', first: 'Jonah', role: 'Colour specialist', bio: 'Balayage, blondes and corrective colour.', photo: 'photos/stylist-jonah.webp', focus: '50% 48%' },
+  { id: 'rae', name: 'Rae O.', first: 'Rae', role: 'Texture & curls', bio: 'Curly cuts, coils and bond-repair treatments.', photo: 'photos/stylist-rae.webp', focus: '50% 36%' }
 ];
 
 export const TIMES = ['9:00', '10:00', '11:30', '13:00', '14:30', '16:00', '17:30'];

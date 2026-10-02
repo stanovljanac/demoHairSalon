@@ -5,9 +5,11 @@ import { esc } from '../format.js';
 // Stylist cards of staggered height; portraits tilt under the pointer.
 export function initStylists() {
   const grid = document.getElementById('team');
+  // Without a `photo` the slot keeps its empty placeholder.
+  const photo = t => t.photo ? ` src="${esc(t.photo)}" alt="Portrait of ${esc(t.name)}" position="${esc(t.focus || '')}"` : '';
   grid.innerHTML = TEAM.map((t, i) => `
     <div class="member" data-reveal="1" data-delay="${i * 120}">
-      <div class="member-photo" data-tilt="1"><image-slot id="site-team-${t.id}" placeholder="Stylist portrait — dark backdrop"></image-slot></div>
+      <div class="member-photo" data-tilt="1"><image-slot id="site-team-${t.id}"${photo(t)} placeholder="Stylist portrait — dark backdrop"></image-slot></div>
       <div class="member-name"><b>${esc(t.name)}</b><span>0${i + 1}</span></div>
       <div class="member-bio"><span>${esc(t.role)}</span><span>${esc(t.bio)}</span></div>
       <button class="member-book" type="button" data-book="${t.id}">Book with ${esc(t.first)} <i class="ph ph-arrow-right"></i></button>
