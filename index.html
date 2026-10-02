@@ -126,6 +126,42 @@
       </div>
     </section>
 
+    <mb-wave top="#161826" bottom="#262a60" aria-hidden="true"></mb-wave>
+
+    <section class="booking" id="book">
+      <div class="booking-glow"></div>
+      <div class="booking-inner wrap">
+        <div class="booking-intro">
+          <span class="eyebrow" data-reveal="1">04 — Book</span>
+          <h2 data-reveal="1">Reserve<br>your <span class="em">chair.</span></h2>
+          <p data-reveal="1">We text a confirmation and a reminder the day before. Need to move it? Reply to the text — no fee with 24 hours' notice.</p>
+          <div class="selection" aria-live="polite"><small>Your selection</small><b id="sel-summary">No service selected yet</b><span id="sel-when">Any stylist</span></div>
+          <div class="chair-stage"><mb-3d model="chair"></mb-3d></div>
+        </div>
+        <div class="booking-card">
+          <form class="bk-form" id="bk-form" novalidate>
+            <div class="bk-group"><span class="bk-label">Stylist</span><div class="bk-grid bk-grid--stylists" id="bk-stylists"></div></div>
+            <div class="bk-group"><span class="bk-label">Day</span><div class="bk-grid bk-grid--days" id="bk-days"></div></div>
+            <div class="bk-group"><span class="bk-label">Time</span><div class="bk-grid bk-grid--times" id="bk-times"></div></div>
+            <div class="bk-fields">
+              <label><span class="bk-label">Name</span><input id="bk-name" name="name" autocomplete="name" placeholder="Full name"></label>
+              <label><span class="bk-label">Mobile</span><input id="bk-phone" name="phone" type="tel" autocomplete="tel" placeholder="For your confirmation"></label>
+            </div>
+            <button class="btn-outline bk-submit" id="bk-submit" type="submit" disabled>Confirm booking <i class="ph ph-check"></i></button>
+            <span class="bk-hint" id="bk-hint" aria-live="polite">Choose a service from the menu</span>
+          </form>
+          <div class="bk-done" id="bk-done" hidden>
+            <div class="bk-check"><i class="ph ph-check"></i></div>
+            <h3>You're booked, <span id="done-name"></span>.</h3>
+            <p><span id="done-summary"></span><br><span id="done-when"></span></p>
+            <button class="btn-ghost-surface" id="bk-reset" type="button">Book another</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <mb-wave top="#262a60" bottom="#161826" aria-hidden="true"></mb-wave>
+
     <!-- sections -->
   </div>
   <script type="module" src="/src/main.js"></script>
