@@ -24,7 +24,7 @@ export const CATS = [{ id: 'care', label: 'Care' }, { id: 'colour', label: 'Colo
 
 export const PANELS = {
   care: { title: 'Finishing mist', note: 'Sprayed on, set in seconds', html: '<mb-3d model="spray-hair"></mb-3d>' },
-  colour: { title: 'Balayage', note: 'Painted root to tip', html: '<mb-dye></mb-dye>' },
+  colour: { title: 'Balayage', note: 'Painted root to tip', html: '<mb-3d model="balayage"></mb-3d>' },
   // v3 clipper fade: vertical clipper moving up and down, fading the side of the hair.
   cut: { title: 'Clipper fade', note: 'Trimming the sides', html: '<mb-3d model="clipper"></mb-3d>' }
 };

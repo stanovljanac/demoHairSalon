@@ -10,20 +10,34 @@
     radial-gradient(48% 58% at 76% 30%, rgba(145,132,217,.24), transparent 70%),
     radial-gradient(40% 45% at 8% 18%, rgba(38,42,96,.8), transparent 70%);
 }
-.hero-inner { position: relative; display: flex; flex-direction: column; gap: clamp(16px, 2.4vw, 32px); }
+.hero-inner {
+  /* --hero-fs: the headline size. --hero-lift raises "Hair," inside the row it shares with the dryer, and
+     "considered." is pulled up by the row gap plus the lift (and a little more), so the two lines sit closer
+     (≈ .26em from the baseline of "Hair," to the top of "considered.", was ≈ .42em) while the comma stays
+     clear of the "i". */
+  --hero-fs: clamp(54px, 14vw, 204px);
+  --hero-gap: clamp(16px, 2.4vw, 32px);
+  --hero-lift: calc(var(--hero-fs) * .12);
+  position: relative; display: flex; flex-direction: column; gap: var(--hero-gap);
+}
 .hero-top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
-.hero-title-col { display: flex; flex-direction: column; gap: clamp(16px, 2.4vw, 28px); flex: 1 1 300px; min-width: 0; }
+.hero-title-col {
+  display: flex; flex-direction: column; gap: clamp(16px, 2.4vw, 28px); flex: 1 1 300px; min-width: 0;
+  margin-bottom: var(--hero-lift);
+}
 .hero-kicker {
   display: flex; align-items: center; gap: 12px; font-size: 12px; letter-spacing: .16em;
   text-transform: uppercase; color: var(--color-accent-300); font-weight: 500;
 }
 .hero-kicker::before { content: ""; width: 32px; height: 1px; background: var(--color-accent); }
-.hero-h1 { margin: 0; font-size: clamp(54px, 14vw, 204px); line-height: .9; font-weight: 500; letter-spacing: -.05em; }
-.hero-h1 > span { display: block; overflow: hidden; padding-bottom: .08em; }
+.hero-h1 { margin: 0; font-size: var(--hero-fs); line-height: .9; font-weight: 500; letter-spacing: -.05em; }
+/* .1em of room under the line so the comma's tail isn't clipped by the rise mask. */
+.hero-h1 > span { display: block; overflow: hidden; padding-bottom: .1em; }
 .hero-h1 > span > span { display: block; }
 .hero-considered {
-  font-size: clamp(54px, 14vw, 204px); line-height: .9; font-weight: 400; letter-spacing: -.05em;
+  font-size: var(--hero-fs); line-height: .9; font-weight: 400; letter-spacing: -.05em;
   overflow: hidden; padding-bottom: .1em;
+  margin-top: calc(-1 * (var(--hero-gap) + var(--hero-lift) + var(--hero-fs) * .02));
 }
 .hero-considered span { display: block; font-style: italic; color: var(--color-accent-300); }
 
@@ -38,6 +52,11 @@
 @media (max-width: 759.98px) {
   .hero-3d--desktop { display: none; }
   .hero-3d--mobile { display: block; }
+}
+/* 760–835px: the dryer wraps under "Hair," and sits between the two lines, so they keep their normal spacing. */
+@media (min-width: 760px) and (max-width: 835.98px) {
+  .hero-inner { --hero-lift: 0px; }
+  .hero-considered { margin-top: 0; }
 }
 
 .hero-bottom {

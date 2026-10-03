@@ -1,5 +1,5 @@
 // Canvas motion components: falling strands, scissor cut-line, waves, marquee,
-// dye brush, splash, plus scroll reveals / parallax / tilt (MBMotion.init).
+// splash, plus scroll reveals / parallax / tilt (MBMotion.init).
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const PAL = ['#b5abfc', '#9397ab', '#d2cefd', '#796cbf', '#cfd3e5', '#e7e5fe'];
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -30,15 +30,6 @@ function drawComb(ctx, x, y, S) {
   for (let i = 0; i < n; i++) { const ty = -H * 0.85 + i * (H * 1.7 / (n - 1)); ctx.beginPath(); ctx.moveTo(0, ty); ctx.lineTo(-tl * (i % 4 === 0 ? 1 : 0.82), ty); ctx.stroke(); }
   ctx.beginPath(); ctx.roundRect(0, -H, sw, H * 2, sw * 0.45); ctx.fillStyle = '#2e3040'; ctx.fill(); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(sw * 0.38, -H * 0.8); ctx.lineTo(sw * 0.38, H * 0.8); ctx.strokeStyle = 'rgba(210,206,253,.55)'; ctx.lineWidth = 1; ctx.stroke();
-  ctx.restore();
-}
-function drawBrush(ctx, x, y, S, a) {
-  ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(-0.75); ctx.lineJoin = 'round';
-  ctx.beginPath(); ctx.moveTo(0, -S * 0.07); ctx.lineTo(S * 0.24, -S * 0.055); ctx.lineTo(S * 0.24, S * 0.055); ctx.lineTo(0, S * 0.07); ctx.closePath();
-  const g = ctx.createLinearGradient(0, 0, S * 0.24, 0); g.addColorStop(0, '#d2cefd'); g.addColorStop(1, '#796cbf'); ctx.fillStyle = g; ctx.fill();
-  ctx.fillStyle = '#cfd3e5'; ctx.fillRect(S * 0.24, -S * 0.06, S * 0.1, S * 0.12);
-  ctx.beginPath(); ctx.roundRect(S * 0.34, -S * 0.032, S * 0.72, S * 0.064, S * 0.03); ctx.fillStyle = '#2e3040'; ctx.fill(); ctx.strokeStyle = '#9184d9'; ctx.lineWidth = 1.2; ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(S * 1.06, 0); ctx.lineTo(S * 1.36, 0); ctx.strokeStyle = '#9184d9'; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
   ctx.restore();
 }
 function drawDrop(ctx, d, col) {
@@ -195,41 +186,6 @@ class Wave extends CanvasEl {
   }
 }
 
-class Dye extends CanvasEl {
-  hostCss() { return ':host{position:absolute;inset:0;display:block;overflow:hidden;pointer-events:none}'; }
-  setup() { this.drips = []; }
-  resized() {
-    const n = 38; this.lw = Math.min(this.w * 0.46, 230); this.cx = this.w * 0.44;
-    this.sd = Array.from({ length: n }, (_, i) => ({ x: this.cx - this.lw / 2 + (i / (n - 1)) * this.lw + rnd(-3, 3), ph: rnd(0, 6.28), a: rnd(4, 11), f: rnd(4, 7), w: rnd(1, 2), l: rnd(0.9, 1) }));
-  }
-  frame(dt) {
-    const { ctx, w, h } = this; if (!w || !this.sd) return; this.t += dt; const t = this.t;
-    const T = 7.5, p = (t % T) / T, top = h * 0.04, bot = h * 0.96, span = bot - top;
-    const ease = x => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-    const paint = p < 0.6 ? ease(p / 0.6) : 1, fade = p < 0.82 ? 1 : 1 - (p - 0.82) / 0.18;
-    ctx.clearRect(0, 0, w, h); ctx.lineCap = 'round';
-    const pt = (q, s) => [q.x + (q.x - this.cx) * s * 0.35 + Math.sin(s * q.f + q.ph + t * 0.7) * q.a * s, top + s * span * q.l];
-    const g = ctx.createLinearGradient(0, top, 0, bot); g.addColorStop(0, '#5d5294'); g.addColorStop(0.45, '#9184d9'); g.addColorStop(1, '#e7e5fe');
-    for (const q of this.sd) {
-      ctx.beginPath(); for (let k = 0; k <= 24; k++) { const [x, y] = pt(q, k / 24); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-      ctx.globalAlpha = 0.9; ctx.strokeStyle = '#595d6c'; ctx.lineWidth = q.w; ctx.stroke();
-      if (paint > 0.001 && fade > 0) {
-        ctx.beginPath(); let k = 0; for (; k / 24 <= paint; k++) { const [x, y] = pt(q, k / 24); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
-        const [ex, ey] = pt(q, paint); ctx.lineTo(ex, ey);
-        ctx.globalAlpha = fade; ctx.strokeStyle = g; ctx.lineWidth = q.w + 0.5; ctx.stroke();
-      }
-    }
-    ctx.globalAlpha = 1;
-    const S = Math.min(150, w * 0.32);
-    if (p < 0.72) {
-      const lift = p > 0.6 ? (p - 0.6) / 0.12 : 0, by = top + paint * span * 0.97, bx = this.cx + Math.sin(t * 3.4) * this.lw * 0.42;
-      drawBrush(ctx, bx + lift * 70, by - lift * 50, S, 1 - lift);
-      if (lift === 0 && Math.random() < dt * 2.4) this.drips.push({ x: bx, y: by + 6, vx: 0, vy: 0, r: rnd(1.6, 2.6), a: 1 });
-    }
-    this.drips = this.drips.filter(d => { d.vy += 520 * dt; d.y += d.vy * dt; d.a -= dt * 0.7; if (d.a <= 0 || d.y > h + 10) return false; drawDrop(ctx, d, '#b5abfc'); return true; });
-  }
-}
-
 class Splash extends CanvasEl {
   hostCss() { return ':host{position:absolute;inset:0;display:block;overflow:hidden;pointer-events:none}'; }
   setup() { this.drops = []; this.rips = []; this.next = 0.3; }
@@ -312,7 +268,6 @@ customElements.get('mb-strands') || customElements.define('mb-strands', Strands)
 customElements.get('mb-cutline') || customElements.define('mb-cutline', Cutline);
 customElements.get('mb-wave') || customElements.define('mb-wave', Wave);
 customElements.get('mb-marquee') || customElements.define('mb-marquee', Marquee);
-customElements.get('mb-dye') || customElements.define('mb-dye', Dye);
 customElements.get('mb-splash') || customElements.define('mb-splash', Splash);
 
 export const MBMotion = window.MBMotion;

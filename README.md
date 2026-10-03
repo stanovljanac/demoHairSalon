@@ -21,7 +21,7 @@ npm run preview  # serve the build
 | **Nav** | Turns solid on scroll; full-screen menu with staggered items below 1000px |
 | **Hero** | "Hair, considered." rises in; a 3D hair dryer dries a lock of hair and follows the cursor; its airflow blows the falling strands |
 | **Cut-line** | Scissors cut the edge into a zigzag as you scroll down, a comb straightens it on the way up |
-| **Services** | Outline category tabs (Care, Colour, Cut); per-tab panel — 3D spray misting hair, dye brush painting a lock, 3D clipper fading the sides (v3 version); scissors trim a hanging lock in the corner |
+| **Services** | Outline category tabs (Care, Colour, Cut); per-tab panel — 3D spray misting hair, a 3D tint brush that dips into a bowl of dye and hand-paints a lock (balayage), 3D clipper fading the sides (v3 version); scissors trim a hanging lock in the corner |
 | **Stylists** | Staggered cards; portraits tilt under the pointer |
 | **Marquee** | Two tilted bands that speed up while scrolling |
 | **Gallery** | Sticky intro; photo columns drift in opposite directions |
